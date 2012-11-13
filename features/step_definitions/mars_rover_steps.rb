@@ -74,7 +74,7 @@ end
 
 When /^I send the 'R' to the rover$/ do
   x,y = rovers.shift
-  rovers << [x + 1, y, 'N']
+  rovers << [x , y, 'E']
 end
 
 def start_expedition
