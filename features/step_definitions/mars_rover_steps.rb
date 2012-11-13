@@ -16,7 +16,7 @@ IO = Struct.new(nil) do
 end
 
 def io
-  @io ||= IO.new()
+  @io ||= IO.new
 end
 
 Given /^there's a (\d+)x(\d+) recognized area to explore in Mars$/ do |width, height|
@@ -32,14 +32,11 @@ Then /^I should be asked the size of the area to explore$/ do
 end
 
 Then /^I should see that the area to explore is (\d+)x(\d+)$/ do |width, height|
-  io.inputs.should include "#{width}x#{height}"
-end
-
-Then /^that the rover should be ready to receive instructions$/ do
-  io.outputs.should include "Please provide instructions:"
+  area_to_explore.should eq [3,3]
 end
 
 Then /^that a rover is ready to receive instructions at (\d+),(\d+)$/ do |x, y|
+  io.outputs.should include "Please provide instructions:"
   rovers.should eq [[0,0]]
 end
 
@@ -58,9 +55,13 @@ end
 
 def start_expedition
   io.puts("What is the size of the area that you would like to explore:")
-  io.gets
+  area_to_explore(io.gets.split("x").map(&:to_i))
   io.puts("Please provide instructions:")
   rovers << [0,0]
+end
+
+def area_to_explore(area = nil)
+  @area ||= area
 end
 
 def rovers
