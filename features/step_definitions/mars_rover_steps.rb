@@ -68,18 +68,18 @@ Then /^the rover should be in position (\d+),(\d+),'(.)'$/ do |x, y, orientation
 end
 
 When /^I send the 'F' to the rover$/ do
-  x,y = rovers.shift
-  rovers << [x, y + 1, 'N']
+  rovers.shift
+  rovers << [0, 0 + 1, 'N']
 end
 
 When /^I send the 'R' to the rover$/ do
-  x,y = rovers.shift
-  rovers << [x , y, 'E']
+  rovers.shift
+  rovers << [0 , 0, 'E']
 end
 
 When /^I send the 'L' to the rover$/ do
-  x,y = rovers.shift
-  rovers << [x , y, 'W']
+  rovers.shift
+  rovers << [0 , 0, 'W']
 end
 
 def start_expedition
