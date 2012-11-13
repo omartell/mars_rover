@@ -77,6 +77,11 @@ When /^I send the 'R' to the rover$/ do
   rovers << [x , y, 'E']
 end
 
+When /^I send the 'L' to the rover$/ do
+  x,y = rovers.shift
+  rovers << [x , y, 'W']
+end
+
 def start_expedition
   io.puts("What is the size of the area that you would like to explore:")
   area_to_explore(io.gets.split("x").map(&:to_i))
