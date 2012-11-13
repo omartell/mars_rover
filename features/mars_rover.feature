@@ -12,5 +12,11 @@ Scenario: Deploying a rover to mars surface
 Scenario: Moving the rover forward
   Given there's a 3x3 recognized area to explore in Mars
   And I have a rover at the initial position
-  When I send the forward instruction to the rover
+  When I send the 'F' to the rover
   Then the rover should be in position 0,1
+
+Scenario: Moving the rover to the right
+  Given there's a 3x3 recognized area to explore in Mars
+  And I have a rover at the initial position
+  When I send the 'R' to the rover
+  Then the rover should be in position 1,0

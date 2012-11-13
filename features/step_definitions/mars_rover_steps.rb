@@ -44,13 +44,18 @@ Given /^I have a rover at the initial position$/ do
   rovers << [0,0]
 end
 
-When /^I send the forward instruction to the rover$/ do
-  x,y = rovers.shift
-  rovers << [x, y+1]
-end
-
 Then /^the rover should be in position (\d+),(\d+)$/ do |x, y|
   rovers.should eq [[x.to_i,y.to_i]]
+end
+
+When /^I send the 'F' to the rover$/ do
+  x,y = rovers.shift
+  rovers << [x, y + 1]
+end
+
+When /^I send the 'R' to the rover$/ do
+  x,y = rovers.shift
+  rovers << [x + 1, y]
 end
 
 def start_expedition
