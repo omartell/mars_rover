@@ -19,7 +19,8 @@ def io
   @io ||= IO.new
 end
 
-Given /^there's an expedition in Mars$/ do
+
+Given /^there's an expedition to Mars$/ do
   
 end
 
