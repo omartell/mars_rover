@@ -78,18 +78,14 @@ When /^I send the 'R' to the rover$/ do
 end
 
 When /^I send the 'L' to the rover$/ do
-  @count ||= 0
+  left_orientations = {
+    'N' => 'W',
+    'W' => 'S',
+    'S' => 'E',
+    'E' => 'N',
+  }
   current_position = rovers.shift
-  rovers << [0 , 0, 'W']
-  if @count == 1
-    rovers.shift
-    rovers << [0,  0, 'S']
-  end
-  if @count == 2
-    rovers.shift
-    rovers << [0, 0, 'E']
-  end
-  @count += 1
+  rovers << [0,0, left_orientations[current_position.last]]
 end
 
 def start_expedition
