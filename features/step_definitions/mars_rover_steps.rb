@@ -33,11 +33,11 @@ Given /^there's a (\d+)x(\d+) recognized area to explore in Mars$/ do |width, he
 end
 
 Given /^I have a rover at position (\d+),(\d+),'(.)'$/ do |x, y, orientation|
-  rovers << [x.to_i, y.to_i, orientation]
+  move_rover_to [x.to_i, y.to_i, orientation]
 end
 
 Given /^I have a rover at the initial position$/ do
-  rovers << [0, 0, 'N']
+  move_rover_to [0, 0, 'N']
 end
 
 Then /^I should be prompted to provide the size of the area to explore$/ do
@@ -73,44 +73,43 @@ end
 
 When /^I send the 'F' to the rover$/ do
   current_position = rovers.last
-  if current_position.last == "N"
-    rovers << [0, current_position[1] + 1, 'N']
-  elsif current_position.last == "E"
-    rovers << [current_position.first + 1, 0, 'E']
-  elsif current_position.last == "S"
-    rovers << [0, current_position[1] - 1, 'S']
-  elsif current_position.last == "W"
-    rovers << [current_position.first - 1, 0, 'W']
+
+
+  if current_position.last == "N" || current_position.last == "S"
+    move_rover_to [0, current_position[1] + movements[current_position.last]['F'] ,current_position.last]
+  elsif current_position.last == "W" || current_position.last == "E"
+    move_rover_to [current_position[0] + movements[current_position.last]['F'], 0, current_position.last]
   end
 end
 
 When /^I send the 'R' to the rover$/ do
-  right_orientations = {
-    'N' => 'E',
-    'W' => 'N',
-    'S' => 'W',
-    'E' => 'S',
-  }
   current_position = rovers.last
-  rovers << [0,0, right_orientations[current_position.last]]
+  move_rover_to [0,0, movements[current_position.last]['R']]
 end
 
 When /^I send the 'L' to the rover$/ do
-  left_orientations = {
-    'N' => 'W',
-    'W' => 'S',
-    'S' => 'E',
-    'E' => 'N',
-  }
   current_position = rovers.last
-  rovers << [0,0, left_orientations[current_position.last]]
+  move_rover_to [0,0, movements[current_position.last]['L']]
+end
+
+def movements
+  {
+    'N' => {'R' => 'E', 'L' => 'W', 'F' => 1 },
+    'W' => {'R' => 'N', 'L' => 'S', 'F' =>-1 },
+    'S' => {'R' => 'W', 'L' => 'E', 'F' =>-1 },
+    'E' => {'R' => 'S', 'L' => 'N', 'F' => 1 },
+  }
 end
 
 def start_expedition
   io.puts("What is the size of the area that you would like to explore:")
   area_to_explore(io.gets.split("x").map(&:to_i))
   io.puts("Please provide instructions for the first rover:")
-  rovers << [0,0, 'N']
+  move_rover_to [0,0, 'N']
+end
+
+def move_rover_to(position)
+  rovers << position
 end
 
 def area_to_explore(area = nil)
