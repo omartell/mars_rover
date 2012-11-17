@@ -48,11 +48,19 @@ Scenario: Sending a sequence of right orientation commands
   And I send the 'R' to the rover
   Then the rover should be in position 0,0,'W'
 
-Scenario: Sending a sequence of 'F' commands
+Scenario: Sending a sequence of 'F' commands when orientations is 'N'
   Given there's a 3x3 recognized area to explore in Mars
   And I have a rover at the initial position
   When I send the 'F' to the rover
   And I send the 'F' to the rover
   And I send the 'F' to the rover
   Then the rover should be in position 0,3,'N'
+
+Scenario: Sending a sequence of 'F' commands when orientation is 'E'
+  Given there's a 3x3 recognized area to explore in Mars
+  And I have a rover at position 0,0,'E'
+  When I send the 'F' to the rover
+  And I send the 'F' to the rover
+  And I send the 'F' to the rover
+  Then the rover should be in position 3,0,'E'
 

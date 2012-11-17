@@ -69,7 +69,11 @@ end
 
 When /^I send the 'F' to the rover$/ do
   current_position = rovers.shift
-  rovers << [0, current_position[1] + 1, 'N']
+  if current_position.last == "N"
+    rovers << [0, current_position[1] + 1, 'N']
+  elsif current_position.last == "E"
+    rovers << [current_position.first + 1, 0, 'E']
+  end
 end
 
 When /^I send the 'R' to the rover$/ do
@@ -92,6 +96,10 @@ When /^I send the 'L' to the rover$/ do
   }
   current_position = rovers.shift
   rovers << [0,0, left_orientations[current_position.last]]
+end
+
+Given /^I have a rover at position (\d+),(\d+),'(.)'$/ do |x, y, orientation|
+  rovers << [x.to_i, y.to_i, orientation]
 end
 
 def start_expedition
