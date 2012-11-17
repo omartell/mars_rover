@@ -64,3 +64,18 @@ Scenario: Sending a sequence of 'F' commands when orientation is 'E'
   And I send the 'F' to the rover
   Then the rover should be in position 3,0,'E'
 
+Scenario: Sending a sequence of 'F' commands when orientation is 'S'
+  Given there's a 3x3 recognized area to explore in Mars
+  And I have a rover at position 0,3,'S'
+  When I send the 'F' to the rover
+  And I send the 'F' to the rover
+  And I send the 'F' to the rover
+  Then the rover should be in position 0,0,'S'
+
+Scenario: Sending a sequence of 'F' commands when orientation is 'W'
+  Given there's a 3x3 recognized area to explore in Mars
+  And I have a rover at position 3,0,'W'
+  When I send the 'F' to the rover
+  And I send the 'F' to the rover
+  And I send the 'F' to the rover
+  Then the rover should be in position 0,0,'W'

@@ -73,6 +73,10 @@ When /^I send the 'F' to the rover$/ do
     rovers << [0, current_position[1] + 1, 'N']
   elsif current_position.last == "E"
     rovers << [current_position.first + 1, 0, 'E']
+  elsif current_position.last == "S"
+    rovers << [0, current_position[1] - 1, 'S']
+  elsif current_position.last == "W"
+    rovers << [current_position.first - 1, 0, 'W']
   end
 end
 
