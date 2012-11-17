@@ -37,6 +37,14 @@ Scenario: Sending a sequence of orientation commands
   And I have a rover at the initial position
   When I send the 'L' to the rover
   And I send the 'L' to the rover
+  Then the rover should be in position 0,0,'S'
+
+Scenario: Sending a sequence of orientation commands
+  Given there's a 3x3 recognized area to explore in Mars
+  And I have a rover at the initial position
+  When I send the 'L' to the rover
+  And I send the 'L' to the rover
+  And I send the 'L' to the rover
   Then the rover should be in position 0,0,'E'
 
 
