@@ -28,9 +28,16 @@ Given /^there's an area to explore in Mars$/ do
 
 end
 
-When /^I start the exploration program$/ do
-  io.inputs << "3x3"
-  start_expedition
+Given /^there's a (\d+)x(\d+) recognized area to explore in Mars$/ do |width, height|
+
+end
+
+Given /^I have a rover at position (\d+),(\d+),'(.)'$/ do |x, y, orientation|
+  rovers << [x.to_i, y.to_i, orientation]
+end
+
+Given /^I have a rover at the initial position$/ do
+  rovers << [0, 0, 'N']
 end
 
 Then /^I should be prompted to provide the size of the area to explore$/ do
@@ -50,21 +57,18 @@ Then /^I should get a confirmation that the area to explore is (\d+)x(\d+)$/ do 
   area_to_explore.should eq [3,3]
 end
 
-Given /^there's a (\d+)x(\d+) recognized area to explore in Mars$/ do |width, height|
-
-end
-
 Then /^that a rover is ready to receive instructions at (\d+),(\d+),'(.)'$/ do |x, y, orientation|
   io.outputs.should include "Please provide instructions for the first rover:"
   rovers.should eq [[ 0, 0, 'N']]
 end
 
-Given /^I have a rover at the initial position$/ do
-  rovers << [0, 0, 'N']
-end
-
 Then /^the rover should be in position (\d+),(\d+),'(.)'$/ do |x, y, orientation|
   rovers.last.should eq [x.to_i,y.to_i, orientation]
+end
+
+When /^I start the exploration program$/ do
+  io.inputs << "3x3"
+  start_expedition
 end
 
 When /^I send the 'F' to the rover$/ do
@@ -100,10 +104,6 @@ When /^I send the 'L' to the rover$/ do
   }
   current_position = rovers.last
   rovers << [0,0, left_orientations[current_position.last]]
-end
-
-Given /^I have a rover at position (\d+),(\d+),'(.)'$/ do |x, y, orientation|
-  rovers << [x.to_i, y.to_i, orientation]
 end
 
 def start_expedition
