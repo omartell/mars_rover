@@ -68,8 +68,8 @@ Then /^the rover should be in position (\d+),(\d+),'(.)'$/ do |x, y, orientation
 end
 
 When /^I send the 'F' to the rover$/ do
-  rovers.shift
-  rovers << [0, 0 + 1, 'N']
+  current_position = rovers.shift
+  rovers << [0, current_position[1] + 1, 'N']
 end
 
 When /^I send the 'R' to the rover$/ do
