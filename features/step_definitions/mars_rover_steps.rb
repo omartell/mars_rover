@@ -51,7 +51,7 @@ Then /^I should get a confirmation that the area to explore is (\d+)x(\d+)$/ do 
 end
 
 Given /^there's a (\d+)x(\d+) recognized area to explore in Mars$/ do |width, height|
-  
+
 end
 
 Then /^that a rover is ready to receive instructions at (\d+),(\d+),'(.)'$/ do |x, y, orientation|
@@ -64,11 +64,11 @@ Given /^I have a rover at the initial position$/ do
 end
 
 Then /^the rover should be in position (\d+),(\d+),'(.)'$/ do |x, y, orientation|
-  rovers.should eq [[x.to_i,y.to_i, orientation]]
+  rovers.last.should eq [x.to_i,y.to_i, orientation]
 end
 
 When /^I send the 'F' to the rover$/ do
-  current_position = rovers.shift
+  current_position = rovers.last
   if current_position.last == "N"
     rovers << [0, current_position[1] + 1, 'N']
   elsif current_position.last == "E"
@@ -83,7 +83,7 @@ When /^I send the 'R' to the rover$/ do
     'S' => 'W',
     'E' => 'S',
   }
-  current_position = rovers.shift
+  current_position = rovers.last
   rovers << [0,0, right_orientations[current_position.last]]
 end
 
@@ -94,7 +94,7 @@ When /^I send the 'L' to the rover$/ do
     'S' => 'E',
     'E' => 'N',
   }
-  current_position = rovers.shift
+  current_position = rovers.last
   rovers << [0,0, left_orientations[current_position.last]]
 end
 
