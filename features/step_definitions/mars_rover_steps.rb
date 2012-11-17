@@ -73,8 +73,14 @@ When /^I send the 'F' to the rover$/ do
 end
 
 When /^I send the 'R' to the rover$/ do
-  rovers.shift
-  rovers << [0 , 0, 'E']
+  right_orientations = {
+    'N' => 'E',
+    'W' => 'N',
+    'S' => 'W',
+    'E' => 'S',
+  }
+  current_position = rovers.shift
+  rovers << [0,0, right_orientations[current_position.last]]
 end
 
 When /^I send the 'L' to the rover$/ do
