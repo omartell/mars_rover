@@ -72,20 +72,22 @@ When /^I start the exploration program$/ do
 end
 
 When /^I send the 'F' to the rover$/ do
-  if current_rover_position.last == "N" || current_rover_position.last == "S"
-    add_position_to_rover [current_rover_position.first, current_rover_position[1] + movements[current_rover_position.last]['F'] ,current_rover_position.last]
-  elsif current_rover_position.last == "W" || current_rover_position.last == "E"
-    add_position_to_rover [current_rover_position[0] + movements[current_rover_position.last]['F'], current_rover_position[1], current_rover_position.last]
+  if current_rover_position.orientation == "N" || current_rover_position.orientation == "S"
+    add_position_to_rover [current_rover_position.x, current_rover_position.y + movements[current_rover_position.orientation]['F'], current_rover_position.orientation]
+  elsif current_rover_position.orientation == "W" || current_rover_position.orientation == "E"
+    add_position_to_rover [current_rover_position.x + movements[current_rover_position.orientation]['F'], current_rover_position.y, current_rover_position.orientation]
   end
 end
 
 When /^I send the 'R' to the rover$/ do
-  add_position_to_rover [current_rover_position.first,current_rover_position[1], movements[current_rover_position.last]['R']]
+  send_orientation_instruction('R')
 end
 
 When /^I send the 'L' to the rover$/ do
-  add_position_to_rover [current_rover_position.first,current_rover_position[1], movements[current_rover_position.last]['L']]
+  send_orientation_instruction('L')
 end
+
+Position = Struct.new(:x, :y, :orientation)
 
 def movements
   {
@@ -96,6 +98,10 @@ def movements
   }
 end
 
+def send_orientation_instruction(orientation)
+  add_position_to_rover [current_rover_position.x, current_rover_position.y, movements[current_rover_position.orientation][orientation]]
+end
+
 def start_expedition
   io.puts("What is the size of the area that you would like to explore:")
   area_to_explore(io.gets.split("x").map(&:to_i))
@@ -104,7 +110,8 @@ def start_expedition
 end
 
 def current_rover_position
-  rovers.last
+  position = rovers.last
+  Position.new position.first, position[1], position.last
 end
 
 def add_position_to_rover(position)
