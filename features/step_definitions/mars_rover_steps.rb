@@ -48,7 +48,7 @@ Then /^I should be prompted to provide the size of the area to explore$/ do
 end
 
 Then /^the start position of the rover$/ do
-  io.outputs.should include "Please provide instructions for the first rover:"
+  io.outputs.should include "Please enter rover instructions:"
 end
 
 When /^I indicate I want to start exploring an area of (\d+)x(\d+) starting at (\d+),(\d+),'(.)'$/ do |width, height, start_x, start_y, orientation|
@@ -62,16 +62,15 @@ Then /^I should get a confirmation that the area to explore is (\d+)x(\d+)$/ do 
 end
 
 Then /^the last known position should be (\d+),(\d+),'(.)'$/ do |x, y, orientation|
-  current_rover_position.should eq Position.new(x.to_i,y.to_i, orientation)
+  current_rover_position.to_s.should eq "#{x} #{y} #{orientation}"
 end
 
 Then /^that a rover is ready to receive instructions at (\d+),(\d+),'(.)'$/ do |x, y, orientation|
-  io.outputs.should include "Please provide instructions for the first rover:"
-  rovers.should eq [Position.new(0, 0, 'N')]
+  current_rover_position.to_s.should eq "#{x} #{y} #{orientation}"
 end
 
 Then /^the rover should be in position (\d+),(\d+),'(.)'$/ do |x, y, orientation|
-  current_rover_position.should eq Position.new(x.to_i, y.to_i, orientation)
+  current_rover_position.to_s.should eq "#{x} #{y} #{orientation}"
 end
 
 Then /^the rover should be lost$/ do
@@ -122,7 +121,7 @@ def start_expedition
   io.puts("What is the size of the area that you would like to explore:")
   width, height = io.gets.split("x").map(&:to_i)
   grid_dimensions([width, height])
-  io.puts("Please provide instructions for the first rover:")
+  io.puts("Please enter rover instructions:")
 end
 
 def current_rover_position

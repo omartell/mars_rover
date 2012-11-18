@@ -31,5 +31,9 @@ module MarsRover
     def east
       self.class.new x, y, "E"
     end
+
+    def to_s
+      "#{x} #{y} #{orientation}"
+    end
   end
 end
