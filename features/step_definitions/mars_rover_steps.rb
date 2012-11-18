@@ -52,10 +52,11 @@ end
 When /^I indicate I want to start exploring an area of (\d+)x(\d+) starting at (\d+),(\d+),'(.)'$/ do |width, height, start_x, start_y, orientation|
   io.inputs << "#{width}x#{height}"
   start_expedition
+  move_rover_to start_x.to_i,start_y.to_i, orientation
 end
 
 Then /^I should get a confirmation that the area to explore is (\d+)x(\d+)$/ do |arg1, arg2|
-  area_to_explore.should eq [3,3]
+  grid_dimensions.should eq [3,3]
 end
 
 Then /^that a rover is ready to receive instructions at (\d+),(\d+),'(.)'$/ do |x, y, orientation|
@@ -77,12 +78,10 @@ When /^I start the exploration program$/ do
 end
 
 When /^I send the 'F' to the rover$/ do
-  width     = area_to_explore.first
-  height    = area_to_explore.last
-  next_move = send_instruction('F')
+  next_position = send_instruction('F')
 
-  if next_move.x >= 0 && next_move.x < width && next_move.y >= 0 && next_move.y < height
-    add_position_to_rover next_move
+  if is_outside_of_grid?(next_position)
+    add_position_to_rover next_position
   else
     add_position_to_rover nil
   end
@@ -149,9 +148,9 @@ end
 
 def start_expedition
   io.puts("What is the size of the area that you would like to explore:")
-  area_to_explore(io.gets.split("x").map(&:to_i))
+  width, height = io.gets.split("x").map(&:to_i)
+  grid_dimensions([width, height])
   io.puts("Please provide instructions for the first rover:")
-  add_position_to_rover Position.new(0,0, 'N')
 end
 
 def current_rover_position
@@ -162,8 +161,20 @@ def add_position_to_rover(position)
   rovers << position
 end
 
-def area_to_explore(area = nil)
-  @area ||= area
+def grid_dimensions(width_height = nil)
+  @grid ||= width_height
+end
+
+def grid_width
+  @grid.first
+end
+
+def grid_height
+  @grid.last
+end
+
+def is_outside_of_grid?(position)
+  position.x >= 0 && position.x < grid_width && position.y >= 0 && position.y < grid_height
 end
 
 def rovers
