@@ -41,51 +41,37 @@ Scenario: Sending a sequence of left orientation commands
 Scenario: Sending a sequence of right orientation commands
   Given there's a 3x3 recognized area to explore in Mars
   And I have a rover at the initial position
-  When I send the 'R' to the rover
-  And I send the 'R' to the rover
-  And I send the 'R' to the rover
+  When I send the 'R,R,R' to the rover
   Then the rover should be in position 0,0,'W'
 
 Scenario: Sending a sequence of 'F' commands when orientations is 'N'
   Given there's a 4x4 recognized area to explore in Mars
   And I have a rover at the initial position
-  When I send the 'F' to the rover
-  And I send the 'F' to the rover
-  And I send the 'F' to the rover
+  When I send the 'F,F,F' to the rover
   Then the rover should be in position 0,3,'N'
 
 Scenario: Sending a sequence of 'F' commands when orientation is 'E'
   Given there's a 4x4 recognized area to explore in Mars
   And I have a rover at position 0,0,'E'
-  When I send the 'F' to the rover
-  And I send the 'F' to the rover
-  And I send the 'F' to the rover
+  When I send the 'F,F,F' to the rover
   Then the rover should be in position 3,0,'E'
 
 Scenario: Sending a sequence of 'F' commands when orientation is 'S'
   Given there's a 3x3 recognized area to explore in Mars
   And I have a rover at position 0,3,'S'
-  When I send the 'F' to the rover
-  And I send the 'F' to the rover
-  And I send the 'F' to the rover
+  When I send the 'F,F,F' to the rover
   Then the rover should be in position 0,0,'S'
 
 Scenario: Sending a sequence of 'F' commands when orientation is 'W'
   Given there's a 3x3 recognized area to explore in Mars
   And I have a rover at position 3,0,'W'
-  When I send the 'F' to the rover
-  And I send the 'F' to the rover
-  And I send the 'F' to the rover
+  When I send the 'F,F,F' to the rover
   Then the rover should be in position 0,0,'W'
 
 Scenario: Sending a sequence of various commands
   Given there's a 3x3 recognized area to explore in Mars
   And I have a rover at position 0,0,'E'
-  When I send the 'F' to the rover
-  And I send the 'L' to the rover
-  And I send the 'F' to the rover
-  And I send the 'R' to the rover
-  And I send the 'F' to the rover
+  When I send the 'F,L,F,R,F' to the rover
   Then the rover should be in position 2,1,'E'
 
 Scenario: Going outside of the grid, x < 0
