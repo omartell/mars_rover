@@ -77,22 +77,10 @@ When /^I start the exploration program$/ do
   start_expedition
 end
 
-When /^I send the 'F' to the rover$/ do
-  next_position = send_instruction('F')
-
-  if is_outside_of_grid?(next_position)
-    add_position_to_rover next_position
-  else
-    add_position_to_rover nil
+When /^I send the '(.*)' to the rover$/ do |instruction|
+  instruction.split(',').each do |ins|
+    send_instruction(ins)
   end
-end
-
-When /^I send the 'R' to the rover$/ do
-  add_position_to_rover send_instruction('R')
-end
-
-When /^I send the 'L' to the rover$/ do
-   add_position_to_rover send_instruction('L')
 end
 
 def movements_from_current_orientation
@@ -109,7 +97,13 @@ def move_rover_to(x, y, orientation)
 end
 
 def send_instruction(new_instruction)
-   movements_from_current_orientation[new_instruction].call(current_rover_position)
+  next_position = movements_from_current_orientation[new_instruction].call(current_rover_position)
+
+  if is_outside_of_grid?(next_position)
+    add_position_to_rover next_position
+  else
+    add_position_to_rover nil
+  end
 end
 
 def start_expedition
