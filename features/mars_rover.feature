@@ -49,7 +49,7 @@ Scenario: Sending a sequence of right orientation commands
   Then the rover should be in position 0,0,'W'
 
 Scenario: Sending a sequence of 'F' commands when orientations is 'N'
-  Given there's a 3x3 recognized area to explore in Mars
+  Given there's a 4x4 recognized area to explore in Mars
   And I have a rover at the initial position
   When I send the 'F' to the rover
   And I send the 'F' to the rover
@@ -57,7 +57,7 @@ Scenario: Sending a sequence of 'F' commands when orientations is 'N'
   Then the rover should be in position 0,3,'N'
 
 Scenario: Sending a sequence of 'F' commands when orientation is 'E'
-  Given there's a 3x3 recognized area to explore in Mars
+  Given there's a 4x4 recognized area to explore in Mars
   And I have a rover at position 0,0,'E'
   When I send the 'F' to the rover
   And I send the 'F' to the rover
@@ -80,7 +80,7 @@ Scenario: Sending a sequence of 'F' commands when orientation is 'W'
   And I send the 'F' to the rover
   Then the rover should be in position 0,0,'W'
 
-Scenario: Sending a sequence of commands
+Scenario: Sending a sequence of various commands
   Given there's a 3x3 recognized area to explore in Mars
   And I have a rover at position 0,0,'E'
   When I send the 'F' to the rover
@@ -89,3 +89,27 @@ Scenario: Sending a sequence of commands
   And I send the 'R' to the rover
   And I send the 'F' to the rover
   Then the rover should be in position 2,1,'E'
+
+Scenario: Going outside of the grid, x < 0
+  Given there's a 3x3 recognized area to explore in Mars
+  And I have a rover at position 0,0,'W'
+  When I send the 'F' to the rover
+  Then the rover should be lost
+
+Scenario: Going outside of the grid, x > width
+  Given there's a 3x3 recognized area to explore in Mars
+  And I have a rover at position 2,0,'E'
+  When I send the 'F' to the rover
+  Then the rover should be lost
+
+Scenario: Going outside of the grid, y > height
+  Given there's a 3x3 recognized area to explore in Mars
+  And I have a rover at position 0,0,'S'
+  When I send the 'F' to the rover
+  Then the rover should be lost
+
+Scenario: Going outside of the grid, y < height
+  Given there's a 3x3 recognized area to explore in Mars
+  And I have a rover at position 0,2,'N'
+  When I send the 'F' to the rover
+  Then the rover should be lost

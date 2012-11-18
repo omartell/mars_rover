@@ -29,7 +29,8 @@ Given /^there's an area to explore in Mars$/ do
 end
 
 Given /^there's a (\d+)x(\d+) recognized area to explore in Mars$/ do |width, height|
-
+  io.inputs << "#{width}x#{height}"
+  start_expedition
 end
 
 Given /^I have a rover at position (\d+),(\d+),'(.)'$/ do |x, y, orientation|
@@ -66,21 +67,33 @@ Then /^the rover should be in position (\d+),(\d+),'(.)'$/ do |x, y, orientation
   current_rover_position.should eq Position.new(x.to_i, y.to_i, orientation)
 end
 
+Then /^the rover should be lost$/ do
+  current_rover_position.should eq nil
+end
+
 When /^I start the exploration program$/ do
   io.inputs << "3x3"
   start_expedition
 end
 
 When /^I send the 'F' to the rover$/ do
-  send_instruction('F')
+  width     = area_to_explore.first
+  height    = area_to_explore.last
+  next_move = send_instruction('F')
+
+  if next_move.x >= 0 && next_move.x < width && next_move.y >= 0 && next_move.y < height
+    add_position_to_rover next_move
+  else
+    add_position_to_rover nil
+  end
 end
 
 When /^I send the 'R' to the rover$/ do
-  send_instruction('R')
+  add_position_to_rover send_instruction('R')
 end
 
 When /^I send the 'L' to the rover$/ do
-  send_instruction('L')
+   add_position_to_rover send_instruction('L')
 end
 
 Position = Struct.new(:x, :y, :orientation) do
@@ -102,7 +115,7 @@ Position = Struct.new(:x, :y, :orientation) do
 
   def west
     self.class.new x, y, "W"
-  end
+  end 
 
   def south
     self.class.new x, y, "S"
@@ -131,7 +144,7 @@ def move_rover_to(x, y, orientation)
 end
 
 def send_instruction(new_instruction)
-  add_position_to_rover movements_from_current_orientation[new_instruction].call(current_rover_position)
+   movements_from_current_orientation[new_instruction].call(current_rover_position)
 end
 
 def start_expedition
