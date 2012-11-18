@@ -33,11 +33,11 @@ Given /^there's a (\d+)x(\d+) recognized area to explore in Mars$/ do |width, he
 end
 
 Given /^I have a rover at position (\d+),(\d+),'(.)'$/ do |x, y, orientation|
-  move_rover_to [x.to_i, y.to_i, orientation]
+  add_position_to_rover [x.to_i, y.to_i, orientation]
 end
 
 Given /^I have a rover at the initial position$/ do
-  move_rover_to [0, 0, 'N']
+  add_position_to_rover [0, 0, 'N']
 end
 
 Then /^I should be prompted to provide the size of the area to explore$/ do
@@ -72,23 +72,19 @@ When /^I start the exploration program$/ do
 end
 
 When /^I send the 'F' to the rover$/ do
-  current_position = rovers.last
-
-  if current_position.last == "N" || current_position.last == "S"
-    move_rover_to [current_position.first, current_position[1] + movements[current_position.last]['F'] ,current_position.last]
-  elsif current_position.last == "W" || current_position.last == "E"
-    move_rover_to [current_position[0] + movements[current_position.last]['F'], current_position[1], current_position.last]
+  if current_rover_position.last == "N" || current_rover_position.last == "S"
+    add_position_to_rover [current_rover_position.first, current_rover_position[1] + movements[current_rover_position.last]['F'] ,current_rover_position.last]
+  elsif current_rover_position.last == "W" || current_rover_position.last == "E"
+    add_position_to_rover [current_rover_position[0] + movements[current_rover_position.last]['F'], current_rover_position[1], current_rover_position.last]
   end
 end
 
 When /^I send the 'R' to the rover$/ do
-  current_position = rovers.last
-  move_rover_to [current_position.first,current_position[1], movements[current_position.last]['R']]
+  add_position_to_rover [current_rover_position.first,current_rover_position[1], movements[current_rover_position.last]['R']]
 end
 
 When /^I send the 'L' to the rover$/ do
-  current_position = rovers.last
-  move_rover_to [current_position.first,current_position[1], movements[current_position.last]['L']]
+  add_position_to_rover [current_rover_position.first,current_rover_position[1], movements[current_rover_position.last]['L']]
 end
 
 def movements
@@ -104,10 +100,14 @@ def start_expedition
   io.puts("What is the size of the area that you would like to explore:")
   area_to_explore(io.gets.split("x").map(&:to_i))
   io.puts("Please provide instructions for the first rover:")
-  move_rover_to [0,0, 'N']
+  add_position_to_rover [0,0, 'N']
 end
 
-def move_rover_to(position)
+def current_rover_position
+  rovers.last
+end
+
+def add_position_to_rover(position)
   rovers << position
 end
 
