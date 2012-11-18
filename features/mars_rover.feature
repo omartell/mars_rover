@@ -104,3 +104,8 @@ Scenario: The rover ignores commands after is lost
   When I send the 'R,F,L,L,F,F,F,F' to the rover
   Then the rover should be lost
   And the last known position should be 0,0,'W'
+
+Scenario: Supporting a one line initialization
+  Given there's an expedition to Mars
+  When I send the following rover instructions "3 3 0 0 N RFLLFFFF"
+  Then the final rover positions should be "0 0 W"

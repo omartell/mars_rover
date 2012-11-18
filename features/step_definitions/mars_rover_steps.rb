@@ -77,6 +77,21 @@ Then /^the rover should be lost$/ do
   is_rover_active.should eq false
 end
 
+When /^I send the following rover instructions "(.*?)"$/ do |instructions|
+  ins_chars     = instructions.gsub(/\s/, "").chars.to_a
+  width, height = *ins_chars.shift(2)
+  grid_dimensions([width.to_i, height.to_i])
+  x,y,orientation = *ins_chars.shift(3)
+  initialize_rover_position(x.to_i,y.to_i,orientation)
+  ins_chars.each do |ins|
+    send_instruction(ins)
+  end  
+end
+
+Then /^the final rover positions should be "(.*?)"$/ do |positions|
+  current_rover_position.to_s.should eq positions
+end
+
 When /^I start the exploration program$/ do
   io.inputs << "3x3"
   start_expedition
@@ -104,6 +119,10 @@ end
 
 def is_rover_active
   @is_rover_active
+end
+
+def all_rover_positions
+  rovers
 end
 
 def send_instruction(new_instruction)
