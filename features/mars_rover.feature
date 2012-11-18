@@ -97,3 +97,10 @@ Scenario: Going outside of the grid, y < height
   And I have a rover at position 0,2,'N'
   When I send the 'F' to the rover
   Then the rover should be lost
+
+Scenario: The rover ignores commands after is lost
+  Given there's a 3x3 recognized area to explore in Mars
+  And I have a rover at position 0,0,'N'
+  When I send the 'R,F,L,L,F,F,F,F' to the rover
+  Then the rover should be lost
+  And the last known position should be 0,0,'W'

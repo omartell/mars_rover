@@ -1,3 +1,5 @@
+include MarsRover
+
 IO = Struct.new(nil) do
   attr_reader :outputs, :inputs
   def gets
@@ -34,11 +36,11 @@ Given /^there's a (\d+)x(\d+) recognized area to explore in Mars$/ do |width, he
 end
 
 Given /^I have a rover at position (\d+),(\d+),'(.)'$/ do |x, y, orientation|
-  move_rover_to x.to_i, y.to_i, orientation
+  initialize_rover_position x.to_i, y.to_i, orientation
 end
 
 Given /^I have a rover at the initial position$/ do
-  move_rover_to 0, 0, 'N'
+  initialize_rover_position 0, 0, 'N'
 end
 
 Then /^I should be prompted to provide the size of the area to explore$/ do
@@ -52,24 +54,28 @@ end
 When /^I indicate I want to start exploring an area of (\d+)x(\d+) starting at (\d+),(\d+),'(.)'$/ do |width, height, start_x, start_y, orientation|
   io.inputs << "#{width}x#{height}"
   start_expedition
-  move_rover_to start_x.to_i,start_y.to_i, orientation
+  initialize_rover_position start_x.to_i,start_y.to_i, orientation
 end
 
 Then /^I should get a confirmation that the area to explore is (\d+)x(\d+)$/ do |arg1, arg2|
   grid_dimensions.should eq [3,3]
 end
 
+Then /^the last known position should be (\d+),(\d+),'(.)'$/ do |x, y, orientation|
+  current_rover_position.should eq Position.new(x.to_i,y.to_i, orientation)
+end
+
 Then /^that a rover is ready to receive instructions at (\d+),(\d+),'(.)'$/ do |x, y, orientation|
   io.outputs.should include "Please provide instructions for the first rover:"
-  rovers.should eq [MarsRover::Position.new(0, 0, 'N')]
+  rovers.should eq [Position.new(0, 0, 'N')]
 end
 
 Then /^the rover should be in position (\d+),(\d+),'(.)'$/ do |x, y, orientation|
-  current_rover_position.should eq MarsRover::Position.new(x.to_i, y.to_i, orientation)
+  current_rover_position.should eq Position.new(x.to_i, y.to_i, orientation)
 end
 
 Then /^the rover should be lost$/ do
-  current_rover_position.should eq nil
+  is_rover_active.should eq false
 end
 
 When /^I start the exploration program$/ do
@@ -92,17 +98,23 @@ def movements_from_current_orientation
   }[current_rover_position.orientation]
 end
 
-def move_rover_to(x, y, orientation)
-  add_position_to_rover MarsRover::Position.new(x, y, orientation)
+def initialize_rover_position(x, y, orientation)
+  add_position_to_rover Position.new(x, y, orientation)
+  @is_rover_active = true
+end
+
+def is_rover_active
+  @is_rover_active
 end
 
 def send_instruction(new_instruction)
+  return unless @is_rover_active
   next_position = movements_from_current_orientation[new_instruction].call(current_rover_position)
 
   if is_outside_of_grid?(next_position)
-    add_position_to_rover next_position
+    add_position_to_rover(next_position)
   else
-    add_position_to_rover nil
+    @is_rover_active = false
   end
 end
 
