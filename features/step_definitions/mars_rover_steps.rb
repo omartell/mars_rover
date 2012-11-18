@@ -74,22 +74,21 @@ end
 When /^I send the 'F' to the rover$/ do
   current_position = rovers.last
 
-
   if current_position.last == "N" || current_position.last == "S"
-    move_rover_to [0, current_position[1] + movements[current_position.last]['F'] ,current_position.last]
+    move_rover_to [current_position.first, current_position[1] + movements[current_position.last]['F'] ,current_position.last]
   elsif current_position.last == "W" || current_position.last == "E"
-    move_rover_to [current_position[0] + movements[current_position.last]['F'], 0, current_position.last]
+    move_rover_to [current_position[0] + movements[current_position.last]['F'], current_position[1], current_position.last]
   end
 end
 
 When /^I send the 'R' to the rover$/ do
   current_position = rovers.last
-  move_rover_to [0,0, movements[current_position.last]['R']]
+  move_rover_to [current_position.first,current_position[1], movements[current_position.last]['R']]
 end
 
 When /^I send the 'L' to the rover$/ do
   current_position = rovers.last
-  move_rover_to [0,0, movements[current_position.last]['L']]
+  move_rover_to [current_position.first,current_position[1], movements[current_position.last]['L']]
 end
 
 def movements
