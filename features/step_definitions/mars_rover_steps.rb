@@ -61,11 +61,11 @@ end
 
 Then /^that a rover is ready to receive instructions at (\d+),(\d+),'(.)'$/ do |x, y, orientation|
   io.outputs.should include "Please provide instructions for the first rover:"
-  rovers.should eq [Position.new(0, 0, 'N')]
+  rovers.should eq [MarsRover::Position.new(0, 0, 'N')]
 end
 
 Then /^the rover should be in position (\d+),(\d+),'(.)'$/ do |x, y, orientation|
-  current_rover_position.should eq Position.new(x.to_i, y.to_i, orientation)
+  current_rover_position.should eq MarsRover::Position.new(x.to_i, y.to_i, orientation)
 end
 
 Then /^the rover should be lost$/ do
@@ -95,40 +95,6 @@ When /^I send the 'L' to the rover$/ do
    add_position_to_rover send_instruction('L')
 end
 
-Position = Struct.new(:x, :y, :orientation) do
-  def x_minus
-    self.class.new x-1, y, orientation
-  end
-
-  def x_plus
-    self.class.new x+1, y, orientation
-  end
-
-  def y_plus
-    self.class.new x, y+1, orientation
-  end
-
-  def y_minus
-    self.class.new x, y-1, orientation
-  end
-
-  def west
-    self.class.new x, y, "W"
-  end 
-
-  def south
-    self.class.new x, y, "S"
-  end
-
-  def north
-    self.class.new x, y, "N"
-  end
-
-  def east
-    self.class.new x, y, "E"
-  end
-end
-
 def movements_from_current_orientation
   {
     'N' => {'R' => ->(p){ p.east  }, 'L' => ->(p){ p.west  }, 'F' => ->(p){ p.y_plus } },
@@ -139,7 +105,7 @@ def movements_from_current_orientation
 end
 
 def move_rover_to(x, y, orientation)
-  add_position_to_rover Position.new(x, y, orientation)
+  add_position_to_rover MarsRover::Position.new(x, y, orientation)
 end
 
 def send_instruction(new_instruction)
