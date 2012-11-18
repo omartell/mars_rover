@@ -72,35 +72,66 @@ When /^I start the exploration program$/ do
 end
 
 When /^I send the 'F' to the rover$/ do
-  next_position = movements[current_rover_position.orientation]['F'][current_rover_position]
-  add_position_to_rover next_position
+  send_instruction('F')
 end
 
 When /^I send the 'R' to the rover$/ do
-  send_orientation_instruction('R')
+  send_instruction('R')
 end
 
 When /^I send the 'L' to the rover$/ do
-  send_orientation_instruction('L')
+  send_instruction('L')
 end
 
-Position = Struct.new(:x, :y, :orientation)
+Position = Struct.new(:x, :y, :orientation) do
+  def x_minus
+    self.class.new x-1, y, orientation
+  end
 
-def movements
+  def x_plus
+    self.class.new x+1, y, orientation
+  end
+
+  def y_plus
+    self.class.new x, y+1, orientation
+  end
+
+  def y_minus
+    self.class.new x, y-1, orientation
+  end
+
+  def west
+    self.class.new x, y, "W"
+  end
+
+  def south
+    self.class.new x, y, "S"
+  end
+
+  def north
+    self.class.new x, y, "N"
+  end
+
+  def east
+    self.class.new x, y, "E"
+  end
+end
+
+def movements_from_current_orientation
   {
-    'N' => {'R' => 'E', 'L' => 'W', 'F' => ->(position){ Position.new(position.x   ,position.y+1, position.orientation) } },
-    'W' => {'R' => 'N', 'L' => 'S', 'F' => ->(position){ Position.new(position.x-1 ,position.y  , position.orientation) } },
-    'S' => {'R' => 'W', 'L' => 'E', 'F' => ->(position){ Position.new(position.x   ,position.y-1, position.orientation) } },
-    'E' => {'R' => 'S', 'L' => 'N', 'F' => ->(position){ Position.new(position.x+1 ,position.y  , position.orientation) } },
-  }
+    'N' => {'R' => ->(p){ p.east  }, 'L' => ->(p){ p.west  }, 'F' => ->(p){ p.y_plus } },
+    'W' => {'R' => ->(p){ p.north }, 'L' => ->(p){ p.south }, 'F' => ->(p){ p.x_minus } },
+    'S' => {'R' => ->(p){ p.west  }, 'L' => ->(p){ p.east  }, 'F' => ->(p){ p.y_minus } },
+    'E' => {'R' => ->(p){ p.south }, 'L' => ->(p){ p.north }, 'F' => ->(p){ p.x_plus } },
+  }[current_rover_position.orientation]
 end
 
 def move_rover_to(x, y, orientation)
   add_position_to_rover Position.new(x, y, orientation)
 end
 
-def send_orientation_instruction(orientation)
-  add_position_to_rover Position.new current_rover_position.x, current_rover_position.y, movements[current_rover_position.orientation][orientation]
+def send_instruction(new_instruction)
+  add_position_to_rover movements_from_current_orientation[new_instruction].call(current_rover_position)
 end
 
 def start_expedition
