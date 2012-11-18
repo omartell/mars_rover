@@ -33,11 +33,11 @@ Given /^there's a (\d+)x(\d+) recognized area to explore in Mars$/ do |width, he
 end
 
 Given /^I have a rover at position (\d+),(\d+),'(.)'$/ do |x, y, orientation|
-  add_position_to_rover Position.new(x.to_i, y.to_i, orientation)
+  move_rover_to x.to_i, y.to_i, orientation
 end
 
 Given /^I have a rover at the initial position$/ do
-  add_position_to_rover Position.new(0, 0, 'N')
+  move_rover_to 0, 0, 'N'
 end
 
 Then /^I should be prompted to provide the size of the area to explore$/ do
@@ -72,15 +72,8 @@ When /^I start the exploration program$/ do
 end
 
 When /^I send the 'F' to the rover$/ do
-  x = current_rover_position.x
-  y = current_rover_position.y
-  orientation = current_rover_position.orientation
-
-  if orientation == "N"    || orientation == "S"
-    add_position_to_rover Position.new( x, y + movements[orientation]['F'], orientation )
-  elsif orientation == "W" || orientation == "E"
-    add_position_to_rover Position.new( x + movements[orientation]['F'], y, orientation )
-  end
+  next_position = movements[current_rover_position.orientation]['F'][current_rover_position]
+  add_position_to_rover next_position
 end
 
 When /^I send the 'R' to the rover$/ do
@@ -95,11 +88,15 @@ Position = Struct.new(:x, :y, :orientation)
 
 def movements
   {
-    'N' => {'R' => 'E', 'L' => 'W', 'F' => 1 },
-    'W' => {'R' => 'N', 'L' => 'S', 'F' =>-1 },
-    'S' => {'R' => 'W', 'L' => 'E', 'F' =>-1 },
-    'E' => {'R' => 'S', 'L' => 'N', 'F' => 1 },
+    'N' => {'R' => 'E', 'L' => 'W', 'F' => ->(position){ Position.new(position.x   ,position.y+1, position.orientation) } },
+    'W' => {'R' => 'N', 'L' => 'S', 'F' => ->(position){ Position.new(position.x-1 ,position.y  , position.orientation) } },
+    'S' => {'R' => 'W', 'L' => 'E', 'F' => ->(position){ Position.new(position.x   ,position.y-1, position.orientation) } },
+    'E' => {'R' => 'S', 'L' => 'N', 'F' => ->(position){ Position.new(position.x+1 ,position.y  , position.orientation) } },
   }
+end
+
+def move_rover_to(x, y, orientation)
+  add_position_to_rover Position.new(x, y, orientation)
 end
 
 def send_orientation_instruction(orientation)
