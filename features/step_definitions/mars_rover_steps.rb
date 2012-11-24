@@ -21,6 +21,17 @@ def io
   @io ||= IO.new
 end
 
+def add_to_one_line_initialization(input)
+  @inputs ||= ""
+  if @inputs.size > 1
+    input  = " #{input}"
+  end
+  @inputs << input
+end
+
+def one_line_initialization
+  @inputs
+end
 
 Given /^there's an expedition to Mars$/ do
   
@@ -31,30 +42,15 @@ Given /^there's an area to explore in Mars$/ do
 end
 
 Given /^there's a (\d+)x(\d+) recognized area to explore in Mars$/ do |width, height|
-  io.inputs << "#{width}x#{height}"
-  start_expedition
+  add_to_one_line_initialization "#{width} #{height}"
 end
 
 Given /^I have a rover at position (\d+),(\d+),'(.)'$/ do |x, y, orientation|
-  initialize_rover_position x.to_i, y.to_i, orientation
+  add_to_one_line_initialization "#{x} #{y} #{orientation}"
 end
 
 Given /^I have a rover at the initial position$/ do
-  initialize_rover_position 0, 0, 'N'
-end
-
-Then /^I should be prompted to provide the size of the area to explore$/ do
-  io.outputs.should include "What is the size of the area that you would like to explore:"
-end
-
-Then /^the start position of the rover$/ do
-  io.outputs.should include "Please enter rover instructions:"
-end
-
-When /^I indicate I want to start exploring an area of (\d+)x(\d+) starting at (\d+),(\d+),'(.)'$/ do |width, height, start_x, start_y, orientation|
-  io.inputs << "#{width}x#{height}"
-  start_expedition
-  initialize_rover_position start_x.to_i,start_y.to_i, orientation
+  add_to_one_line_initialization "0 0 N"
 end
 
 Then /^I should get a confirmation that the area to explore is (\d+)x(\d+)$/ do |arg1, arg2|
@@ -77,28 +73,42 @@ Then /^the rover should be lost$/ do
   is_rover_active.should eq false
 end
 
-When /^I send the following rover instructions "(.*?)"$/ do |instructions|
-  ins_chars     = instructions.gsub(/\s/, "").chars.to_a
-  width, height = *ins_chars.shift(2)
-  grid_dimensions([width.to_i, height.to_i])
-  x,y,orientation = *ins_chars.shift(3)
-  initialize_rover_position(x.to_i,y.to_i,orientation)
-  ins_chars.each do |ins|
-    send_instruction(ins)
-  end  
-end
-
 Then /^the final rover positions should be "(.*?)"$/ do |positions|
   current_rover_position.to_s.should eq positions
 end
 
+Then /^I should be offered the option to specify my game in one line$/ do
+  io.outputs.should include "What's the grid size to explore and your rovers movements? Format: width height (x y orientation movements+)+"
+end
+
 When /^I start the exploration program$/ do
-  io.inputs << "3x3"
   start_expedition
 end
 
 When /^I send the '(.*)' to the rover$/ do |instruction|
-  instruction.split(',').each do |ins|
+  add_to_one_line_initialization instruction.split(',').join(" ")
+  io.inputs << one_line_initialization
+  start_expedition
+end
+
+When /^the game starts$/ do
+  io.inputs << "3 3 0 0 N RFLLFFFF"
+  start_expedition
+end
+
+When /^I send the following rover instructions "(.*?)"$/ do |instructions|
+  io.inputs << instructions
+  start_expedition
+end
+
+def start_expedition
+  io.puts("What's the grid size to explore and your rovers movements? Format: width height (x y orientation movements+)+")
+  instruction_chars = io.gets.gsub(/\s/, "").chars.to_a
+  width, height     = *instruction_chars.shift(2)
+  grid_dimensions([width.to_i, height.to_i])
+  x,y,orientation = *instruction_chars.shift(3)
+  initialize_rover_position(x.to_i,y.to_i,orientation)
+  instruction_chars.each do |ins|
     send_instruction(ins)
   end
 end
@@ -134,13 +144,6 @@ def send_instruction(new_instruction)
   else
     @is_rover_active = false
   end
-end
-
-def start_expedition
-  io.puts("What is the size of the area that you would like to explore:")
-  width, height = io.gets.split("x").map(&:to_i)
-  grid_dimensions([width, height])
-  io.puts("Please enter rover instructions:")
 end
 
 def current_rover_position
