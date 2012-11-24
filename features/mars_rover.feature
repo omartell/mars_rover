@@ -102,3 +102,8 @@ Scenario: Supporting a one line initialization
   Given there's an expedition to Mars
   When I send the following rover instructions "3 3 0 0 N RFLLFFFF"
   Then the final rover positions should be "0 0 W"
+
+Scenario: Deploying more than one rover
+  Given there's an expedition to Mars
+  When I send the following rover instructions "3 3 0 0 N RFLLFFFF 0 0 N RFLLFFFF"
+  Then the final rover positions should be "0 0 W 0 0 W"
