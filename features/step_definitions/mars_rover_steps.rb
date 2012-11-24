@@ -103,24 +103,33 @@ end
 
 def start_expedition
   io.puts("What's the grid size to explore and your rovers movements? Format: width height (x y orientation movements+)+")
-  instruction_chars = io.gets.gsub(/\s/, "").chars.to_a
-  width, height     = *instruction_chars.shift(2)
-  grid_dimensions([width.to_i, height.to_i])
-  x,y,orientation = *instruction_chars.shift(3)
-  initialize_rover_position(x.to_i,y.to_i,orientation)
-  instruction_chars.each do |ins|
-    send_instruction(ins)
+  raw_instruction = io.gets.gsub(/\s/, "").chars.to_a
+  grid_dimensions = raw_instruction[0..1]
+  rover_data      = raw_instruction[2..4]
+  commands        = raw_instruction[5..-1]
+  initialize_grid_dimensions(*parse_grid_dimensions(grid_dimensions))
+  initialize_rover_position(*parse_rover_data(rover_data))
+  commands.each do |instruction|
+    send_instruction(instruction)
   end
 end
 
-def movements_from_current_orientation
-  {
-    'N' => {'R' => ->(p){ p.east  }, 'L' => ->(p){ p.west  }, 'F' => ->(p){ p.y_plus } },
-    'W' => {'R' => ->(p){ p.north }, 'L' => ->(p){ p.south }, 'F' => ->(p){ p.x_minus } },
-    'S' => {'R' => ->(p){ p.west  }, 'L' => ->(p){ p.east  }, 'F' => ->(p){ p.y_minus } },
-    'E' => {'R' => ->(p){ p.south }, 'L' => ->(p){ p.north }, 'F' => ->(p){ p.x_plus } },
-  }[current_rover_position.orientation]
+def parse_rover_data(instruction_chars)
+  x,y,orientation   = *instruction_chars
+  [x.to_i,y.to_i,orientation]
 end
+
+def parse_grid_dimensions(instruction_chars)
+  width,height = *instruction_chars
+  [width.to_i, height.to_i]
+end
+
+MOVEMENTS = {
+  'N' => {'R' => ->(p){ p.east  }, 'L' => ->(p){ p.west  }, 'F' => ->(p){ p.y_plus } },
+  'W' => {'R' => ->(p){ p.north }, 'L' => ->(p){ p.south }, 'F' => ->(p){ p.x_minus } },
+  'S' => {'R' => ->(p){ p.west  }, 'L' => ->(p){ p.east  }, 'F' => ->(p){ p.y_minus } },
+  'E' => {'R' => ->(p){ p.south }, 'L' => ->(p){ p.north }, 'F' => ->(p){ p.x_plus } },
+}
 
 def initialize_rover_position(x, y, orientation)
   add_position_to_rover Position.new(x, y, orientation)
@@ -131,13 +140,9 @@ def is_rover_active
   @is_rover_active
 end
 
-def all_rover_positions
-  rovers
-end
-
 def send_instruction(new_instruction)
   return unless @is_rover_active
-  next_position = movements_from_current_orientation[new_instruction].call(current_rover_position)
+  next_position = MOVEMENTS[current_rover_position.orientation][new_instruction].call(current_rover_position)
 
   if is_outside_of_grid?(next_position)
     add_position_to_rover(next_position)
@@ -154,20 +159,13 @@ def add_position_to_rover(position)
   rovers << position
 end
 
-def grid_dimensions(width_height = nil)
-  @grid ||= width_height
-end
-
-def grid_width
-  @grid.first
-end
-
-def grid_height
-  @grid.last
+def initialize_grid_dimensions(width, height)
+  @grid_width  = width
+  @grid_height = height
 end
 
 def is_outside_of_grid?(position)
-  position.x >= 0 && position.x < grid_width && position.y >= 0 && position.y < grid_height
+  position.x >= 0 && position.x < @grid_width && position.y >= 0 && position.y < @grid_height
 end
 
 def rovers
