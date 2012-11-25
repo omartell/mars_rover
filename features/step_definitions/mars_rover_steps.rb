@@ -104,22 +104,27 @@ end
 def start_expedition
   io.puts("What's the grid size to explore and your rovers movements? Format: width height (x y orientation movements+)+")
   raw_instruction = io.gets
-  @mission = MarsMission.new *parse_grid_dimensions(raw_instruction)
+  @parser  = InstructionParser.new(raw_instruction)
+  @mission = MarsMission.new(*@parser.grid_instructions)
+  @mission.deploy_rovers(@parser.rovers_instructions)
+end
 
-  raw_instruction.scan(/(\d \d [W,N,S,E]) (\w+)\s?/).each do |position, commands|
-    rover = @mission.deploy_rover(*parse_rover_data(position))
-    rover.execute_commands(commands.chars)
+class InstructionParser
+  def initialize(raw_instruction)
+    @raw_instruction = raw_instruction
   end
-end
 
-def parse_rover_data(raw_position)
-  x,y,orientation = *raw_position.gsub(/\s/, "").chars
-  [x.to_i,y.to_i,orientation]
-end
+  def rovers_instructions
+    @raw_instruction.scan(/(\d \d [W,N,S,E]) (\w+)\s?/).map do |position, commands|
+      x,y,orientation = *position.gsub(/\s/, "").chars
+      [Position.new(x.to_i,y.to_i,orientation), commands.chars]
+    end
+  end
 
-def parse_grid_dimensions(raw_instruction)
-  width,height = *raw_instruction[0..2].gsub(/\s/, "").chars
-  [width.to_i, height.to_i]
+  def grid_instructions
+    width,height = *@raw_instruction[0..2].gsub(/\s/, "").chars
+    [width.to_i, height.to_i]
+  end
 end
 
 class MarsMission
@@ -129,23 +134,26 @@ class MarsMission
     @rovers = []
   end
 
-  def build_rover(x, y, orientation)
-    position = Position.new(x, y, orientation)
-    Rover.new(position, @grid_width, @grid_height)
-  end
-
-  def deploy_rover(*rover_data)
-    rover = build_rover(*rover_data)
-    @rovers << rover
-    rover
+  def deploy_rovers(instructions)
+    instructions.each do |position, commands|
+      build_rover(position).execute_commands(commands)
+    end
   end
 
   def last_deployed_rover
-    rovers.last
+    @rovers.last
   end
 
   def rovers
     @rovers.dup
+  end
+
+  private
+  
+  def build_rover(position)
+    rover = Rover.new(position, @grid_width, @grid_height)
+    @rovers << rover
+    rover
   end
 end
 
