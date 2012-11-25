@@ -58,15 +58,15 @@ Then /^I should get a confirmation that the area to explore is (\d+)x(\d+)$/ do 
 end
 
 Then /^the last known position should be (\d+),(\d+),'(.)'$/ do |x, y, orientation|
-  current_rover_position.to_s.should eq "#{x} #{y} #{orientation}"
+  current_rover.current_position.to_s.should eq "#{x} #{y} #{orientation}"
 end
 
 Then /^that a rover is ready to receive instructions at (\d+),(\d+),'(.)'$/ do |x, y, orientation|
-  current_rover_position.to_s.should eq "#{x} #{y} #{orientation}"
+  current_rover.current_position.to_s.should eq "#{x} #{y} #{orientation}"
 end
 
 Then /^the rover should be in position (\d+),(\d+),'(.)'$/ do |x, y, orientation|
-  current_rover_position.to_s.should eq "#{x} #{y} #{orientation}"
+  current_rover.current_position.to_s.should eq "#{x} #{y} #{orientation}"
 end
 
 Then /^the rover should be lost$/ do
@@ -74,7 +74,7 @@ Then /^the rover should be lost$/ do
 end
 
 Then /^the final rover positions should be "(.*?)"$/ do |positions|
-  rovers.map(&:last).map(&:to_s).join(" ").should eq positions
+  rovers.flat_map(&:current_position).map(&:to_s).join(" ").should eq positions
 end
 
 Then /^I should be offered the option to specify my game in one line$/ do
@@ -104,25 +104,23 @@ end
 def start_expedition
   io.puts("What's the grid size to explore and your rovers movements? Format: width height (x y orientation movements+)+")
   raw_instruction = io.gets
-  grid_dimensions = raw_instruction[0..2].gsub(/\s/, "").chars
-  initialize_grid_dimensions(*parse_grid_dimensions(grid_dimensions))
+  initialize_grid_dimensions(*parse_grid_dimensions(raw_instruction))
 
   raw_instruction.scan(/(\d \d [W,N,S,E]) (\w+)\s?/).each do |position, commands|
-    position = position.gsub(/\s/, "").chars
     initialize_rover_position(*parse_rover_data(position))
     commands.chars.each do |instruction|
       send_instruction(instruction)
-    end   
+    end
   end
 end
 
-def parse_rover_data(instruction_chars)
-  x,y,orientation   = *instruction_chars
+def parse_rover_data(raw_position)
+  x,y,orientation = *raw_position.gsub(/\s/, "").chars
   [x.to_i,y.to_i,orientation]
 end
 
-def parse_grid_dimensions(instruction_chars)
-  width,height = *instruction_chars
+def parse_grid_dimensions(raw_instruction)
+  width,height = *raw_instruction[0..2].gsub(/\s/, "").chars
   [width.to_i, height.to_i]
 end
 
@@ -134,7 +132,7 @@ MOVEMENTS = {
 }
 
 def initialize_rover_position(x, y, orientation)
-  rover = add_position_to_rover Position.new(x, y, orientation)
+  rover = Rover.new Position.new(x, y, orientation)
   add_rover rover
   @is_rover_active = true
 end
@@ -145,10 +143,10 @@ end
 
 def send_instruction(new_instruction)
   return unless @is_rover_active
-  next_position = MOVEMENTS[current_rover_position.orientation][new_instruction].call(current_rover_position)
+  next_position = MOVEMENTS[current_rover.current_position.orientation][new_instruction].call(current_rover.current_position)
 
   if is_outside_of_grid?(next_position)
-    add_position_to_rover(next_position)
+    current_rover.add_position(next_position)
   else
     @is_rover_active = false
   end
@@ -163,13 +161,8 @@ def rovers
   @rovers
 end
 
-def current_rover_position
-  rover_positions.last
-end
-
-def add_position_to_rover(position)
-  rover_positions << position
-  rover_positions
+def current_rover
+  rovers.last
 end
 
 def initialize_grid_dimensions(width, height)
@@ -181,6 +174,22 @@ def is_outside_of_grid?(position)
   position.x >= 0 && position.x < @grid_width && position.y >= 0 && position.y < @grid_height
 end
 
-def rover_positions
-  @rover_positions ||= []
+class Rover
+  def initialize(initial_position)
+    @positions = []
+    @positions << initial_position
+    @active = true
+  end
+
+  def current_position
+    @positions.last
+  end
+
+  def add_position(position)
+    @positions << position
+  end
+  
+  def positions
+    @positions
+  end
 end
