@@ -58,7 +58,7 @@ Then /^I should get a confirmation that the area to explore is (\d+)x(\d+)$/ do 
 end
 
 Then /^the last known position should be (\d+),(\d+),'(.)'$/ do |x, y, orientation|
-  current_rover.current_position.to_s.should eq "#{x} #{y} #{orientation}"
+  current_rover.last_known_position.to_s.should eq "#{x} #{y} #{orientation}"
 end
 
 Then /^that a rover is ready to receive instructions at (\d+),(\d+),'(.)'$/ do |x, y, orientation|
@@ -70,7 +70,7 @@ Then /^the rover should be in position (\d+),(\d+),'(.)'$/ do |x, y, orientation
 end
 
 Then /^the rover should be lost$/ do
-  is_rover_active.should eq false
+  current_rover.active?.should eq false
 end
 
 Then /^the final rover positions should be "(.*?)"$/ do |positions|
@@ -108,8 +108,8 @@ def start_expedition
 
   raw_instruction.scan(/(\d \d [W,N,S,E]) (\w+)\s?/).each do |position, commands|
     initialize_rover_position(*parse_rover_data(position))
-    commands.chars.each do |instruction|
-      send_instruction(instruction)
+    commands.chars.each do |command|
+      current_rover.command(command)
     end
   end
 end
@@ -124,7 +124,7 @@ def parse_grid_dimensions(raw_instruction)
   [width.to_i, height.to_i]
 end
 
-MOVEMENTS = {
+SURFACE_MAP = {
   'N' => {'R' => ->(p){ p.east  }, 'L' => ->(p){ p.west  }, 'F' => ->(p){ p.y_plus } },
   'W' => {'R' => ->(p){ p.north }, 'L' => ->(p){ p.south }, 'F' => ->(p){ p.x_minus } },
   'S' => {'R' => ->(p){ p.west  }, 'L' => ->(p){ p.east  }, 'F' => ->(p){ p.y_minus } },
@@ -132,24 +132,8 @@ MOVEMENTS = {
 }
 
 def initialize_rover_position(x, y, orientation)
-  rover = Rover.new Position.new(x, y, orientation)
-  add_rover rover
-  @is_rover_active = true
-end
-
-def is_rover_active
-  @is_rover_active
-end
-
-def send_instruction(new_instruction)
-  return unless @is_rover_active
-  next_position = MOVEMENTS[current_rover.current_position.orientation][new_instruction].call(current_rover.current_position)
-
-  if is_outside_of_grid?(next_position)
-    current_rover.add_position(next_position)
-  else
-    @is_rover_active = false
-  end
+  rover = Rover.new(Position.new(x, y, orientation), @grid_width, @grid_height)
+  add_rover(rover)
 end
 
 def add_rover(rover)
@@ -170,26 +154,29 @@ def initialize_grid_dimensions(width, height)
   @grid_height = height
 end
 
-def is_outside_of_grid?(position)
-  position.x >= 0 && position.x < @grid_width && position.y >= 0 && position.y < @grid_height
-end
-
 class Rover
-  def initialize(initial_position)
-    @positions = []
+  attr_reader :positions, :lost_positions, :last_known_position
+  def initialize(initial_position, grid_width, grid_height)
+    @positions      = []
+    @grid_width     = grid_width
+    @grid_height    = grid_height
     @positions << initial_position
-    @active = true
   end
 
   def current_position
     @positions.last
   end
 
-  def add_position(position)
-    @positions << position
+  def command(command)
+    next_position = SURFACE_MAP[current_position.orientation][command].call(current_position)
+    if active?
+      @positions << next_position
+    else
+      @last_known_position = @positions[-2]
+    end
   end
-  
-  def positions
-    @positions
+
+  def active?
+    current_position.x >= 0 && current_position.x < @grid_width && current_position.y >= 0 && current_position.y < @grid_height
   end
 end

@@ -45,13 +45,13 @@ Scenario: Sending a sequence of 'F' commands when orientation is 'E'
   Then the rover should be in position 3,0,'E'
 
 Scenario: Sending a sequence of 'F' commands when orientation is 'S'
-  Given there's a 3x3 recognized area to explore in Mars
+  Given there's a 4x4 recognized area to explore in Mars
   And I have a rover at position 0,3,'S'
   When I send the 'F,F,F' to the rover
   Then the rover should be in position 0,0,'S'
 
 Scenario: Sending a sequence of 'F' commands when orientation is 'W'
-  Given there's a 3x3 recognized area to explore in Mars
+  Given there's a 4x4 recognized area to explore in Mars
   And I have a rover at position 3,0,'W'
   When I send the 'F,F,F' to the rover
   Then the rover should be in position 0,0,'W'
@@ -100,10 +100,10 @@ Scenario: Ask user for one line initialization
 
 Scenario: Supporting a one line initialization
   Given there's an expedition to Mars
-  When I send the following rover instructions "3 3 0 0 N RFLLFFFF"
+  When I send the following rover instructions "3 3 0 0 N RFLLF"
   Then the final rover positions should be "0 0 W"
 
 Scenario: Deploying more than one rover
   Given there's an expedition to Mars
-  When I send the following rover instructions "3 3 0 0 N RFLLFFFF 0 0 N RFLLFFFF"
+  When I send the following rover instructions "3 3 0 0 N RFLLF 0 0 N RFLLF"
   Then the final rover positions should be "0 0 W 0 0 W"
