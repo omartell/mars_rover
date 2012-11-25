@@ -70,7 +70,7 @@ Then /^the rover should be in position (\d+),(\d+),'(.)'$/ do |x, y, orientation
 end
 
 Then /^the rover should be lost$/ do
-  current_rover.active?.should eq false
+  current_rover.lost?.should eq true
 end
 
 Then /^the final rover positions should be "(.*?)"$/ do |positions|
@@ -155,7 +155,7 @@ def initialize_grid_dimensions(width, height)
 end
 
 class Rover
-  attr_reader :positions, :lost_positions, :last_known_position
+  attr_reader :positions, :last_known_position
   def initialize(initial_position, grid_width, grid_height)
     @positions      = []
     @grid_width     = grid_width
@@ -169,14 +169,14 @@ class Rover
 
   def command(command)
     next_position = SURFACE_MAP[current_position.orientation][command].call(current_position)
-    if active?
-      @positions << next_position
-    else
+    if lost?
       @last_known_position = @positions[-2]
+    else
+      @positions << next_position
     end
   end
 
-  def active?
-    current_position.x >= 0 && current_position.x < @grid_width && current_position.y >= 0 && current_position.y < @grid_height
+  def lost?
+    current_position.x < 0 || current_position.x >= @grid_width || current_position.y < 0 || current_position.y >= @grid_height
   end
 end
