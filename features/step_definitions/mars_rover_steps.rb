@@ -1,5 +1,3 @@
-include MarsRover
-
 IO = Struct.new(nil) do
   attr_reader :outputs, :inputs
   def gets
@@ -104,97 +102,7 @@ end
 def start_expedition
   io.puts("What's the grid size to explore and your rovers movements? Format: width height (x y orientation movements+)+")
   raw_instruction = io.gets
-  @parser  = InstructionParser.new(raw_instruction)
-  @mission = MarsMission.new(*@parser.grid_instructions)
+  @parser  = MarsRover::InstructionParser.new(raw_instruction)
+  @mission = MarsRover::Station.new(*@parser.grid_instructions)
   @mission.deploy_rovers(@parser.rovers_instructions)
-end
-
-class InstructionParser
-  def initialize(raw_instruction)
-    @raw_instruction = raw_instruction
-  end
-
-  def rovers_instructions
-    @raw_instruction.scan(/(\d \d [W,N,S,E]) (\w+)\s?/).map do |position, commands|
-      x,y,orientation = *position.gsub(/\s/, "").chars
-      [Position.new(x.to_i,y.to_i,orientation), commands.chars]
-    end
-  end
-
-  def grid_instructions
-    width,height = *@raw_instruction[0..2].gsub(/\s/, "").chars
-    [width.to_i, height.to_i]
-  end
-end
-
-class MarsMission
-  def initialize(grid_width, grid_height)
-    @grid_width  = grid_width
-    @grid_height = grid_height
-    @rovers = []
-  end
-
-  def deploy_rovers(instructions)
-    instructions.each do |position, commands|
-      build_rover(position).execute_commands(commands)
-    end
-  end
-
-  def last_deployed_rover
-    @rovers.last
-  end
-
-  def rovers
-    @rovers.dup
-  end
-
-  private
-  
-  def build_rover(position)
-    rover = Rover.new(position, @grid_width, @grid_height)
-    @rovers << rover
-    rover
-  end
-end
-
-SURFACE_MAP = {
-  'N' => {'R' => ->(p){ p.east  }, 'L' => ->(p){ p.west  }, 'F' => ->(p){ p.y_plus } },
-  'W' => {'R' => ->(p){ p.north }, 'L' => ->(p){ p.south }, 'F' => ->(p){ p.x_minus } },
-  'S' => {'R' => ->(p){ p.west  }, 'L' => ->(p){ p.east  }, 'F' => ->(p){ p.y_minus } },
-  'E' => {'R' => ->(p){ p.south }, 'L' => ->(p){ p.north }, 'F' => ->(p){ p.x_plus } },
-}
-
-class Rover
-  attr_reader :last_known_position
-  def initialize(initial_position, grid_width, grid_height)
-    @positions      = []
-    @grid_width     = grid_width
-    @grid_height    = grid_height
-    @positions << initial_position
-  end
-
-  def current_position
-    @positions.last
-  end
-
-  def positions
-    @positions.dup
-  end
-
-  def execute_command(command)
-    next_position = SURFACE_MAP.fetch(current_position.orientation).fetch(command).call(current_position)
-    if lost?
-      @last_known_position = @positions[-2]
-    else
-      @positions << next_position
-    end
-  end
-
-  def execute_commands(commands)
-    commands.each{ |c| execute_command(c) }
-  end
-
-  def lost?
-    current_position.x < 0 || current_position.x >= @grid_width || current_position.y < 0 || current_position.y >= @grid_height
-  end
 end

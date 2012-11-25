@@ -1,6 +1,5 @@
 Feature:
-  Control the rovers that will find the hidden treasures
-  in the mars surface.
+  Control the rovers that will find the hidden treasures of the mars surface.
 
 Scenario: Sending the 'F' command
   Given there's a 3x3 recognized area to explore in Mars
