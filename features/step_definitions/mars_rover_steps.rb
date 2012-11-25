@@ -58,23 +58,23 @@ Then /^I should get a confirmation that the area to explore is (\d+)x(\d+)$/ do 
 end
 
 Then /^the last known position should be (\d+),(\d+),'(.)'$/ do |x, y, orientation|
-  current_rover.last_known_position.to_s.should eq "#{x} #{y} #{orientation}"
+  @mission.last_deployed_rover.last_known_position.to_s.should eq "#{x} #{y} #{orientation}"
 end
 
 Then /^that a rover is ready to receive instructions at (\d+),(\d+),'(.)'$/ do |x, y, orientation|
-  current_rover.current_position.to_s.should eq "#{x} #{y} #{orientation}"
+  @mission.last_deployed_rover.current_position.to_s.should eq "#{x} #{y} #{orientation}"
 end
 
 Then /^the rover should be in position (\d+),(\d+),'(.)'$/ do |x, y, orientation|
-  current_rover.current_position.to_s.should eq "#{x} #{y} #{orientation}"
+  @mission.last_deployed_rover.current_position.to_s.should eq "#{x} #{y} #{orientation}"
 end
 
 Then /^the rover should be lost$/ do
-  current_rover.lost?.should eq true
+  @mission.last_deployed_rover.lost?.should eq true
 end
 
 Then /^the final rover positions should be "(.*?)"$/ do |positions|
-  rovers.flat_map(&:current_position).map(&:to_s).join(" ").should eq positions
+  @mission.rovers.flat_map(&:current_position).map(&:to_s).join(" ").should eq positions
 end
 
 Then /^I should be offered the option to specify my game in one line$/ do
@@ -104,13 +104,11 @@ end
 def start_expedition
   io.puts("What's the grid size to explore and your rovers movements? Format: width height (x y orientation movements+)+")
   raw_instruction = io.gets
-  initialize_grid_dimensions(*parse_grid_dimensions(raw_instruction))
+  @mission = MarsMission.new *parse_grid_dimensions(raw_instruction)
 
   raw_instruction.scan(/(\d \d [W,N,S,E]) (\w+)\s?/).each do |position, commands|
-    initialize_rover_position(*parse_rover_data(position))
-    commands.chars.each do |command|
-      current_rover.command(command)
-    end
+    rover = @mission.deploy_rover(*parse_rover_data(position))
+    rover.execute_commands(commands.chars)
   end
 end
 
@@ -124,6 +122,33 @@ def parse_grid_dimensions(raw_instruction)
   [width.to_i, height.to_i]
 end
 
+class MarsMission
+  def initialize(grid_width, grid_height)
+    @grid_width  = grid_width
+    @grid_height = grid_height
+    @rovers = []
+  end
+
+  def build_rover(x, y, orientation)
+    position = Position.new(x, y, orientation)
+    Rover.new(position, @grid_width, @grid_height)
+  end
+
+  def deploy_rover(*rover_data)
+    rover = build_rover(*rover_data)
+    @rovers << rover
+    rover
+  end
+
+  def last_deployed_rover
+    rovers.last
+  end
+
+  def rovers
+    @rovers.dup
+  end
+end
+
 SURFACE_MAP = {
   'N' => {'R' => ->(p){ p.east  }, 'L' => ->(p){ p.west  }, 'F' => ->(p){ p.y_plus } },
   'W' => {'R' => ->(p){ p.north }, 'L' => ->(p){ p.south }, 'F' => ->(p){ p.x_minus } },
@@ -131,31 +156,8 @@ SURFACE_MAP = {
   'E' => {'R' => ->(p){ p.south }, 'L' => ->(p){ p.north }, 'F' => ->(p){ p.x_plus } },
 }
 
-def initialize_rover_position(x, y, orientation)
-  rover = Rover.new(Position.new(x, y, orientation), @grid_width, @grid_height)
-  add_rover(rover)
-end
-
-def add_rover(rover)
-  @rovers ||= []
-  @rovers << rover
-end
-
-def rovers
-  @rovers
-end
-
-def current_rover
-  rovers.last
-end
-
-def initialize_grid_dimensions(width, height)
-  @grid_width  = width
-  @grid_height = height
-end
-
 class Rover
-  attr_reader :positions, :last_known_position
+  attr_reader :last_known_position
   def initialize(initial_position, grid_width, grid_height)
     @positions      = []
     @grid_width     = grid_width
@@ -167,13 +169,21 @@ class Rover
     @positions.last
   end
 
-  def command(command)
-    next_position = SURFACE_MAP[current_position.orientation][command].call(current_position)
+  def positions
+    @positions.dup
+  end
+
+  def execute_command(command)
+    next_position = SURFACE_MAP.fetch(current_position.orientation).fetch(command).call(current_position)
     if lost?
       @last_known_position = @positions[-2]
     else
       @positions << next_position
     end
+  end
+
+  def execute_commands(commands)
+    commands.each{ |c| execute_command(c) }
   end
 
   def lost?
