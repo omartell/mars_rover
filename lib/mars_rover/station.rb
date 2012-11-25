@@ -12,8 +12,10 @@ module MarsRover
       end
     end
 
-    def last_deployed_rover
-      @rovers.last
+    def rovers_status
+      @rovers.map do |rover|
+        rover.lost? ? "LOST": rover.current_position.to_s
+      end.join(" ")
     end
 
     def rovers

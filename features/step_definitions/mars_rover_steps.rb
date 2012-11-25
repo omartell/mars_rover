@@ -51,28 +51,24 @@ Given /^I have a rover at the initial position$/ do
   add_to_one_line_initialization "0 0 N"
 end
 
-Then /^I should get a confirmation that the area to explore is (\d+)x(\d+)$/ do |arg1, arg2|
-  grid_dimensions.should eq [3,3]
-end
-
 Then /^the last known position should be (\d+),(\d+),'(.)'$/ do |x, y, orientation|
-  @mission.last_deployed_rover.last_known_position.to_s.should eq "#{x} #{y} #{orientation}"
+  @station.rovers.map(&:last_known_position).map(&:to_s).should eq ["#{x} #{y} #{orientation}"]
 end
 
 Then /^that a rover is ready to receive instructions at (\d+),(\d+),'(.)'$/ do |x, y, orientation|
-  @mission.last_deployed_rover.current_position.to_s.should eq "#{x} #{y} #{orientation}"
+  @station.rovers_status.should eq "#{x} #{y} #{orientation}"
 end
 
 Then /^the rover should be in position (\d+),(\d+),'(.)'$/ do |x, y, orientation|
-  @mission.last_deployed_rover.current_position.to_s.should eq "#{x} #{y} #{orientation}"
+  @station.rovers_status.should eq "#{x} #{y} #{orientation}"
 end
 
 Then /^the rover should be lost$/ do
-  @mission.last_deployed_rover.lost?.should eq true
+  @station.rovers_status.should eq "LOST"
 end
 
 Then /^the final rover positions should be "(.*?)"$/ do |positions|
-  @mission.rovers.flat_map(&:current_position).map(&:to_s).join(" ").should eq positions
+  @station.rovers_status.should eq positions
 end
 
 Then /^I should be offered the option to specify my game in one line$/ do
@@ -103,6 +99,6 @@ def start_expedition
   io.puts("What's the grid size to explore and your rovers movements? Format: width height (x y orientation movements+)+")
   raw_instruction = io.gets
   @parser  = MarsRover::InstructionParser.new(raw_instruction)
-  @mission = MarsRover::Station.new(*@parser.grid_instructions)
-  @mission.deploy_rovers(@parser.rovers_instructions)
+  @station = MarsRover::Station.new(*@parser.grid_instructions)
+  @station.deploy_rovers(@parser.rovers_instructions)
 end
