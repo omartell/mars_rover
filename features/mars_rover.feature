@@ -106,3 +106,8 @@ Scenario: Deploying more than one rover
   Given there's an expedition to Mars
   When I send the following rover instructions "3 3 0 0 N RFLLF 0 0 N RFLLF"
   Then the final rover positions should be "0 0 W 0 0 W"
+
+Scenario: Deploying several rovers, one should be lost
+  Given there's an expedition to Mars
+  When I send the following rover instructions "3 3 0 0 N RFLLF 0 0 N RFLLFFFFF 0 0 N FFRF"
+  Then the final rover positions should be "0 0 W LOST 1 2 E"
