@@ -86,7 +86,7 @@ When /^I start the exploration program$/ do
 end
 
 When /^I send the '(.*)' to the rover$/ do |instruction|
-  add_to_one_line_initialization instruction.split(',').join(" ")
+  add_to_one_line_initialization instruction.split(',').join("")
   io.inputs << one_line_initialization
   start_expedition
 end
@@ -103,25 +103,16 @@ end
 
 def start_expedition
   io.puts("What's the grid size to explore and your rovers movements? Format: width height (x y orientation movements+)+")
-  raw_instruction = io.gets.gsub(/\s/, "").chars.to_a
-  grid_dimensions = raw_instruction[0..1]
-  rover_data      = raw_instruction[2..4]
-  commands        = raw_instruction[5..12]
-  if raw_instruction.size > 13
-    rover_data2     = raw_instruction[13..15]
-    commands2       = raw_instruction[16..-1]
-  end
-
+  raw_instruction = io.gets
+  grid_dimensions = raw_instruction[0..2].gsub(/\s/, "").chars
   initialize_grid_dimensions(*parse_grid_dimensions(grid_dimensions))
-  initialize_rover_position(*parse_rover_data(rover_data))
-  commands.each do |instruction|
-    send_instruction(instruction)
-  end
-  if raw_instruction.size > 13
-    initialize_rover_position(*parse_rover_data(rover_data2))
-    commands2.each do |instruction|
+
+  raw_instruction.scan(/(\d \d [W,N,S,E]) (\w+)\s?/).each do |position, commands|
+    position = position.gsub(/\s/, "").chars
+    initialize_rover_position(*parse_rover_data(position))
+    commands.chars.each do |instruction|
       send_instruction(instruction)
-    end
+    end   
   end
 end
 
